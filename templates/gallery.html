@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .gallery-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 1px solid var(--glass-border);
+        transition: transform 0.2s;
+    }
+
+    .gallery-item:hover {
+        transform: scale(1.05);
+        z-index: 10;
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: var(--bg-dark);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        max-width: 90%;
+        max-height: 90%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: popUp 0.3s ease;
+    }
+
+    @keyframes popUp {
+        from {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-img {
+        max-height: 60vh;
+        object-fit: contain;
+        background: black;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+    }
+</style>
+
+<div class="glass" style="padding: 2rem;">
+    <h1>Photo Gallery</h1>
+    <p style="color: var(--text-muted);">A visual collection of your days.</p>
+
+    {% if not images %}
+    <p style="text-align: center; margin-top: 2rem; color: var(--text-muted);">No photos uploaded yet.</p>
+    {% endif %}
+
+    <div class="gallery-grid">
+        {% for img in images %}
+        <div class="gallery-item"
+            onclick="openModal('{{ url_for('static', filename='uploads/' + img.image_path) }}', '{{ img.entry.date.strftime('%B %d, %Y') }}', `{{ img.entry.content }}`, `{{ img.entry.pinned_text or '' }}`)">
+            <img src="{{ url_for('static', filename='uploads/' + img.image_path) }}" loading="lazy">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="imageModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="modalImg" class="modal-img" src="">
+        <div class="modal-body">
+            <h3 id="modalDate" style="color: var(--primary);"></h3>
+            <div id="modalPinned"
+                style="background: rgba(236, 72, 153, 0.1); padding: 0.5rem; border-left: 3px solid var(--secondary); margin-bottom: 1rem; display: none;">
+            </div>
+            <p id="modalText" style="line-height: 1.6; white-space: pre-wrap;"></p>
+            <button onclick="document.getElementById('imageModal').style.display='none'" class="btn-primary"
+                style="width: 100%; margin-top: 1rem;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(imgSrc, dateText, content, pinned) {
+        document.getElementById('modalImg').src = imgSrc;
+        document.getElementById('modalDate').innerText = dateText;
+        document.getElementById('modalText').innerText = content || "No entry text.";
+
+        const pinEl = document.getElementById('modalPinned');
+        if (pinned && pinned !== 'None') {
+            pinEl.style.display = 'block';
+            pinEl.innerText = "📌 " + pinned;
+        } else {
+            pinEl.style.display = 'none';
+        }
+
+        document.getElementById('imageModal').style.display = 'flex';
+    }
+
+    function closeModal(e) {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

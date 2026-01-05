@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit & Routine Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header class="glass">
+            <div class="logo">DailyFocus</div>
+            <nav>
+                <a href="{{ url_for('dashboard') }}"
+                    class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a>
+                <a href="{{ url_for('diary') }}" class="{{ 'active' if request.endpoint == 'diary' else '' }}">Diary</a>
+                <a href="{{ url_for('timetable') }}"
+                    class="{{ 'active' if request.endpoint == 'timetable' else '' }}">Timetable</a>
+                <a href="{{ url_for('settings') }}"
+                    class="{{ 'active' if request.endpoint == 'settings' else '' }}">Settings/Routines</a>
+                <a href="{{ url_for('gallery') }}"
+                    class="{{ 'active' if request.endpoint == 'gallery' else '' }}">Gallery</a>
+                <a href="{{ url_for('timeline') }}"
+                    class="{{ 'active' if request.endpoint == 'timeline' else '' }}">Timeline</a>
+                <a href="{{ url_for('analytics') }}"
+                    class="{{ 'active' if request.endpoint == 'analytics' else '' }}">Analytics</a>
+            </nav>
+        </header>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        // Simple helper for turning nice 
+        function toggleHabit(itemId, btn) {
+            fetch(`/toggle_habit/${itemId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.status) {
+                            btn.classList.add('completed');
+                            btn.innerHTML = '✓';
+                        } else {
+                            btn.classList.remove('completed');
+                            btn.innerHTML = '';
+                        }
+                    }
+                });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass" style="margin-bottom: 2rem; padding: 1.5rem;">
+    <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">Daily Goal Settings</h2>
+    <form action="{{ url_for('settings') }}" method="POST" style="display: flex; gap: 1rem; align-items: center;">
+        <label>Target Routine Completion Score (%):</label>
+        <input type="number" name="target_score" value="{{ target_score }}" min="0" max="100"
+            style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; padding: 0.5rem; border-radius: 8px; width: 80px;">
+        <button type="submit" class="btn-primary">Save Goal</button>
+    </form>
+</div>
+
+<div class="glass" style="padding: 2rem; margin-bottom: 2rem;">
+    <h1>Settings & Routine Manager</h1>
+
+    <div class="mt-4">
+        <h3>Add New Routine Item</h3>
+        <form action="{{ url_for('add_routine') }}" method="POST"
+            style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <input type="text" name="name" placeholder="Activity Name" required
+                style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+
+            <input type="text" name="time_start" placeholder="Start Time (e.g. 06:30 AM)" required
+                style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+
+            <select name="routine_type"
+                style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(15,23,42,0.8); color: white;">
+                <option value="Weekday">Weekday (Mon-Fri)</option>
+                <option value="Weekend">Weekend (Sat-Sun)</option>
+            </select>
+
+            <input type="text" name="description" placeholder="Description/Goal"
+                style="padding: 0.75rem; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white;">
+
+            <button type="submit" class="btn-primary">Add Item</button>
+        </form>
+    </div>
+</div>
+
+<div class="glass" style="padding: 1rem;">
+    <h2>Existing Routines</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--glass-border); color: var(--text-muted);">
+                    <th style="padding: 1rem;">Time</th>
+                    <th style="padding: 1rem;">Type</th>
+                    <th style="padding: 1rem;">Activity</th>
+                    <th style="padding: 1rem;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 1rem;">{{ item.time_start }}</td>
+                    <td style="padding: 1rem;">
+                        <span
+                            style="background: rgba(255,255,255,0.1); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">{{
+                            item.routine_type }}</span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="font-weight: 600;">{{ item.name }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">{{ item.description }}</div>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <form action="{{ url_for('delete_routine', item_id=item.id) }}" method="POST"
+                            onsubmit="return confirm('Are you sure?');">
+                            <button type="submit"
+                                style="background: #ef4444; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

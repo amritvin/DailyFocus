@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: grid; gap: 2rem;">
+    <div>
+        <h2 style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Weekday Routine (Mon-Fri)</h2>
+        <div class="routine-list">
+            {% for item in weekday %}
+            <div class="routine-item glass">
+                <span class="time-badge">{{ item.time_start }}</span>
+                <div class="routine-content">
+                    <span class="routine-title">{{ item.name }}</span>
+                    <span class="routine-desc">{{ item.description }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <h2 style="border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Weekend Routine (Sat-Sun)</h2>
+        <div class="routine-list">
+            {% for item in weekend %}
+            <div class="routine-item glass">
+                <span class="time-badge">{{ item.time_start }}</span>
+                <div class="routine-content">
+                    <span class="routine-title">{{ item.name }}</span>
+                    <span class="routine-desc">{{ item.description }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

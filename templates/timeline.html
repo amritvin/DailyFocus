@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .year-header {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-top: 2rem;
+        color: white;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 0.5rem;
+    }
+
+    .month-header {
+        font-size: 1.5rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--secondary);
+    }
+
+    .timeline-card {
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        border-left: 4px solid var(--primary);
+        transition: transform 0.2s;
+    }
+
+    .timeline-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .timeline-date {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+</style>
+
+<div class="container">
+    <h1 style="text-align: center; margin-bottom: 2rem;">Life Timeline</h1>
+
+    {% if not grouped_data %}
+    <div class="glass" style="padding: 2rem; text-align: center;">
+        <p>No journal entries yet. Start writing your story!</p>
+        <a href="{{ url_for('diary') }}" class="btn-primary"
+            style="text-decoration: none; display: inline-block; margin-top: 1rem;">Write Today's Entry</a>
+    </div>
+    {% endif %}
+
+    {% for year, months in grouped_data.items()|reverse %}
+    <div class="year-header">{{ year }}</div>
+
+    {% for month, entries in months.items() %}
+    <div class="month-header">{{ month }}</div>
+
+    {% for entry in entries %}
+    <div class="glass timeline-card">
+        <span class="timeline-date">{{ entry.date.strftime('%A, %d %B') }}</span>
+
+        {% if entry.pinned_text %}
+        <div
+            style="background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; font-style: italic;">
+            📌 {{ entry.pinned_text }}
+        </div>
+        {% endif %}
+
+        {% if entry.images %}
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
+            {% for img in entry.images %}
+            <img src="{{ url_for('static', filename='uploads/' + img.image_path) }}"
+                style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px; cursor: pointer;">
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <p style="white-space: pre-wrap;">{{ entry.content }}</p>
+
+        <div style="margin-top: 1rem; text-align: right;">
+            <a href="{{ url_for('dashboard', date=entry.date.isoformat()) }}"
+                style="color: var(--primary); font-size: 0.9rem;">View Full Day →</a>
+        </div>
+    </div>
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass" style="padding: 2rem; margin-bottom: 2rem; position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="margin: 0;">{{ day_name }}'s Focus</h1>
+            <p style="color: var(--text-muted);">{{ current_date.strftime('%B %d, %Y') }}</p>
+        </div>
+    </div>
+
+    <!-- Score Meter, Date Picker & Navigation -->
+    <div class="glass"
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; margin-top: 2rem;">
+        <div>
+            <h1 id="clock" style="font-size: 3rem; font-weight: 200; line-height: 1;">--:--</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">{{ current_date.strftime('%A, %B %d') }}</p>
+        </div>
+
+        <!-- Score Visualization -->
+        <div
+            style="position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                    stroke="rgba(255,255,255,0.1)" stroke-width="3" />
+                <path id="score-ring" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none" stroke="{{ 'var(--success)' if score >= target_score else 'var(--primary)' }}"
+                    stroke-width="3" stroke-dasharray="{{ score }}, 100" />
+            </svg>
+            <div style="position: absolute; font-size: 0.9rem; font-weight: bold; color: white;">
+                <span id="score-text">{{ score }}</span>%
+            </div>
+            <div
+                style="position: absolute; bottom: -25px; font-size: 0.6rem; color: var(--text-muted); width: 100px; text-align: center;">
+                Daily Score
+            </div>
+        </div>
+
+        <div class="week-nav glass"
+            style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; overflow-x: hidden; gap: 0.25rem;">
+            {% for d in week_dates %}
+            <a href="{{ url_for('dashboard', date=d.date.isoformat()) }}"
+                class="week-day {{ 'active' if d.is_current else '' }}"
+                style="text-decoration: none; color: white; display: flex; flex-direction: column; align-items: center; padding: 0.5rem; border-radius: 12px; flex: 1; transition: background 0.2s;">
+                <span
+                    style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px;">{{
+                    d.day_name }}</span>
+                <span style="font-weight: 600; font-size: 1.1rem;">{{ d.day_num }}</span>
+            </a>
+            {% endfor %}
+
+            <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></div>
+
+            <!-- Enhanced Date Picker -->
+            <!-- Enhanced Date Picker (Visible) -->
+            <form action="{{ url_for('dashboard') }}" method="GET"
+                style="display: flex; align-items: center; justify-content: center;">
+                <input type="date" name="date" value="{{ current_date.isoformat() }}" onchange="this.form.submit()"
+                    class="glass-input-date" title="Select any date">
+            </form>
+        </div>
+    </div>
+
+    <!-- Pinned & Reminders Section -->
+    {% if diary_entry and diary_entry.pinned_text %}
+    <div class="pinned-section glass mt-4">
+        <strong>📌 Pinned:</strong> {{ diary_entry.pinned_text }}
+    </div>
+    {% endif %}
+
+    {% if reminders %}
+    <div class="mt-4">
+        <h3 style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--secondary);">🔔 Reminders for {{ day_name }}
+        </h3>
+        {% for rem in reminders %}
+        <div class="glass"
+            style="padding: 0.75rem; border-left: 3px solid var(--secondary); margin-bottom: 0.5rem; background: rgba(236, 72, 153, 0.05);">
+            {{ rem.message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Add Reminder Quick Action -->
+    <div class="mt-4">
+        <details>
+            <summary style="cursor: pointer; color: var(--primary); font-weight: 500;">+ Adhoc Reminder</summary>
+            <form action="{{ url_for('add_reminder') }}" method="POST" class="mt-4 glass" style="padding: 1rem;">
+                <input type="hidden" name="date" value="{{ current_date.isoformat() }}">
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" name="message" placeholder="Remind me to..." required
+                        style="flex: 1; padding: 0.5rem; border-radius: 4px; border:none;">
+                    <button type="submit" class="btn-primary">Add</button>
+                </div>
+            </form>
+        </details>
+    </div>
+</div>
+
+<div class="routine-list">
+    <h2 style="margin-left: 0.5rem;">Routine Goals</h2>
+    {% if not routine_items %}
+    <p style="margin-left: 0.5rem; color: var(--text-muted);">No routine items for this day type.</p>
+    {% endif %}
+    {% for item in routine_items %}
+    <div class="routine-item glass">
+        <span class="time-badge">{{ item.time_start }}</span>
+        <div class="routine-content">
+            <span class="routine-title">{{ item.name }}</span>
+            {% if item.description %}
+            <span class="routine-desc">{{ item.description }}</span>
+            {% endif %}
+        </div>
+        <button class="check-btn {% if item.id in completed_ids %}completed{% endif %}"
+            onclick="toggleHabitWithDate({{ item.id }}, this, '{{ current_date.isoformat() }}')">
+            {% if item.id in completed_ids %}✓{% endif %}
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function toggleHabitWithDate(itemId, btn, dateStr) {
+        fetch(`/toggle_habit/${itemId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: dateStr })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.status) {
+                        btn.classList.add('completed');
+                        btn.innerHTML = '✓';
+                    } else {
+                        btn.classList.remove('completed');
+                        btn.innerHTML = '';
+                    }
+                    updateLiveScore();
+                }
+            });
+    }
+
+    function updateLiveScore() {
+        const total = document.querySelectorAll('.routine-item').length;
+        const completed = document.querySelectorAll('.check-btn.completed').length;
+        // Fix div by zero if no items (though hidden in UI if empty)
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        // Update Text
+        document.getElementById('score-text').innerText = percentage;
+
+        // Update Ring
+        const ring = document.getElementById('score-ring');
+        ring.setAttribute('stroke-dasharray', `${percentage}, 100`);
+
+        // Update Color
+        const target = {{ target_score | default (80)
+    }};
+    if (percentage >= target) {
+        ring.setAttribute('stroke', 'var(--success)');
+    } else {
+        ring.setAttribute('stroke', 'var(--primary)');
+    }
+    }
+</script>
+{% endblock %}
